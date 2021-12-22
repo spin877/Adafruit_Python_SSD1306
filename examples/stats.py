@@ -50,7 +50,7 @@ disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
 # disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST)
 
 # Note you can change the I2C address by passing an i2c_address parameter like:
-# disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST, i2c_address=0x3C)
+disp = Adafruit_SSD1306.SSD1306_128_64(rst=RST, i2c_address=0x3C)
 
 # Alternatively you can specify an explicit I2C bus number, for example
 # with the 128x32 display you would use:
@@ -102,7 +102,86 @@ font = ImageFont.load_default()
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 # font = ImageFont.truetype('Minecraftia.ttf', 8)
 
+i=0
+verso=True;
+
+
++STRING = [
++         "         <>         \n",
++        "        <<>>        \n",
++         "       <<<>>>       \n",
++         "      <<<<>>>>      \n",
++         "     <<<<<>>>>>     \n",
++         "    <<<<<<>>>>>>    \n",
++         "   <<<<<<<>>>>>>>   \n",
++         "  <<<<<<<<>>>>>>>>  \n",
++         " <<<<<<<<<>>>>>>>>> \n",
++         "<<<<<<<<<<>>>>>>>>>>\n",
++#         "         <>         \n",
++#         "        <<>>        \n",
++#         "       <<<>>>       \n",
++#         "      <<<<>>>>      \n",
++#         "     <<<<<>>>>>     \n",
++#         "    <<<<<<>>>>>>    \n",
++#         "   <<<<<<<>>>>>>>   \n",
++#         "  <<<<<<<<>>>>>>>>  \n",
++#         " <<<<<<<<<>>>>>>>>> \n",
++#         "<<<<<<<<<<>>>>>>>>>>\n",
++         ">                  <\n",
++         ">>                <<\n",
++         ">>>              <<<\n",
++         ">>>>            <<<<\n",
++         ">>>>>          <<<<<\n",
++         ">>>>>>        <<<<<<\n",
++         ">>>>>>>      <<<<<<<\n",
++         ">>>>>>>>    <<<<<<<<\n",
++         ">>>>>>>>>  <<<<<<<<<\n",
++         ">>>>>>>>>><<<<<<<<<<\n",
++         "         <>         \n",
++         "        <<>>        \n",
++         "       <<<>>>       \n",
++         "      <<<<>>>>      \n",
++         "     <<<<<>>>>>     \n",
++         "    <<<<<<>>>>>>    \n",
++         "   <<<<<<<>>>>>>>   \n",
++         "  <<<<<<<<>>>>>>>>  \n",
++         " <<<<<<<<<>>>>>>>>> \n",
++         "<<<<<<<<<<>>>>>>>>>>\n",
++         "<<<<<<<<<<>>>>>>>>>>\n",
++         "<<<<<<<<<  >>>>>>>>>\n",
++         "<<<<<<<<    >>>>>>>>\n",
++         "<<<<<<<      >>>>>>>\n",
++         "<<<<<<        >>>>>>\n",
++         "<<<<<          >>>>>\n",
++         "<<<<            >>>>\n",
++         "<<<              >>>\n",
++         "<<                >>\n",
++         "<                  >\n",
++         "                    \n"]
++
++
+
+    
+
+
+
 while True:
+    
+    if i==len(STRING)-1:
+        verso=False
+
+    if i==0:
+        verso=True
+    
+    if verso:
+        i+=1
+    else:
+        i-=1
+
+
+    
+    
+    
 
     # Draw a black filled box to clear the image.
     draw.rectangle((0,0,width,height), outline=0, fill=0)
@@ -110,19 +189,26 @@ while True:
     # Shell scripts for system monitoring from here : https://unix.stackexchange.com/questions/119126/command-to-display-memory-usage-disk-usage-and-cpu-load
     cmd = "hostname -I | cut -d\' \' -f1"
     IP = subprocess.check_output(cmd, shell = True )
-    cmd = "top -bn1 | grep load | awk '{printf \"CPU Load: %.2f\", $(NF-2)}'"
+    cmd = "top -bn1 | grep load | awk '{printf \"CPU %.1f\", $(NF-2)}'"
     CPU = subprocess.check_output(cmd, shell = True )
-    cmd = "free -m | awk 'NR==2{printf \"Mem: %s/%sMB %.2f%%\", $3,$2,$3*100/$2 }'"
+    cmd = "free -m | awk 'NR==2{printf \"Mem:%s/%sMB %.1f%%\", $3,$2,$3*100/$2}'"
     MemUsage = subprocess.check_output(cmd, shell = True )
     cmd = "df -h | awk '$NF==\"/\"{printf \"Disk: %d/%dGB %s\", $3,$2,$5}'"
     Disk = subprocess.check_output(cmd, shell = True )
+    
+    cmd = "cat /sys/devices/virtual/thermal/thermal_zone0/hwmon0/temp1_input"
+    TEMP = subprocess.check_output(cmd, shell=True)
+    iTemp = round(int(TEMP) / 1000, 1)
+
+
+
 
     # Write two lines of text.
 
-    draw.text((x, top),       "IP: " + str(IP),  font=font, fill=255)
-    draw.text((x, top+8),     str(CPU), font=font, fill=255)
-    draw.text((x, top+16),    str(MemUsage),  font=font, fill=255)
-    draw.text((x, top+25),    str(Disk),  font=font, fill=255)
+    draw.text((x, top), str(STRING[i]), font=font, fill=255)
+    draw.text((x, top+8), "IP: " + str(IP.decode("utf-8")), font=font, fill=255)
+    draw.text((x, top +16), str(CPU.decode("utf-8")) + "% Temp:"+ str(iTemp)+ " C°", font=font, fill=255)
+    draw.text((x, top + 25), str(MemUsage.decode("utf-8")), font=font, fill=255)
 
     # Display image.
     disp.image(image)
